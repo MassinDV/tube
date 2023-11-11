@@ -5,7 +5,7 @@ import requests
 import re
 import sys
 
-erreur = 'https://raw.githubusercontent.com/BG47510/Zap/main/assets/error.m3u8'
+erreur = 'https://raw.githubusercontent.com/MassinDV/videos/main/offlintv.m3u8'
 
 def snif(url):
     lien = s.get(url, timeout=15).text
