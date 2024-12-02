@@ -1,63 +1,57 @@
-name: tube
+name: Tube Update Workflow
 
-# # Actualisation du flux toutes les 3 heures. 
+# Schedule the workflow to run every 3 hours
 on:
   schedule:
-    - cron: '0 0/3 * * *'
-
-  # Permet d'exécuter ce flux de travail manuellement à partir de l'onglet Actions
+    - cron: '0 */3 * * *'
+  # Allow manual trigger of the workflow
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# Un flux de travail se compose d'une ou plusieurs tâches qui peuvent être exécutées séquentiellement ou en parallèle
 jobs:
-  # Ce flux de travail contient une tâche appelée "build"
-  build:
-    # Le travail sera exécuté sur ubuntu-latest
+  update_streams:
+    # Run the job on the latest Ubuntu environment
     runs-on: ubuntu-latest
 
-    # Steps représentent une séquence de tâches qui seront exécutées dans le cadre du travail
     steps:
-      # Extrait votre référentiel sous $GITHUB_WORKSPACE, afin que votre travail puisse y accéder
-      - uses: actions/checkout@v3
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-
-      # Pour pouvoir travailler sur un projet,
-      # Vous avez besoin d’un nom d’utilisateur et d’une adresse email associée valide. 
-      - name: config
+      # Configure Git user for commits
+      - name: Configure Git
         run: |
-          git pull
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
 
-      - name: actualisation des flux
+      # Update streaming links
+      - name: Update Streams
         run: |
-          pwd
-          python3 tube.py "https://www.youtube.com/channel/UCCCPCZNChQdGa9EkATeye4g/live" > france24.m3u8
-          sleep 15
-          python3 tube.py "https://www.youtube.com/channel/UCO6K_kkdP-lnSCiO3tPx7WA/live" > franceinfo.m3u8
-          sleep 15
-          python3 tube.py "https://www.youtube.com/channel/UCW2QcKZiU8aUGg4yxCIditg/live" > euronews.m3u8
-          sleep 15
-          python3 tube.py "https://www.youtube.com/channel/UCT67YOMntJxfRnO_9bXDpvw/live" > lemedia.m3u8
-          sleep 15
-          python3 tube.py "https://www.youtube.com/channel/UC25EuGAePOPvPrUA5cmu3dQ/live" > africanews.m3u8
-          sleep 15
-          python3 tube.py "https://www.youtube.com/channel/UCUaHJ0fTA-1theR8A8Polmw/live" > techandco.m3u8
-          sleep 15
-          python3 tube.py "https://www.youtube.com/channel/UCJduEGukjOXzTW4jfkQ-ihw/live" > relaxnature.m3u8
-          sleep 15
-          python3 tube.py "https://www.youtube.com/channel/UCcip9fzGawR1Or5G15UwFLA/live" > beetoonss.m3u8
+          streams=(
+            "https://www.youtube.com/channel/UCCCPCZNChQdGa9EkATeye4g/live france24.m3u8"
+            "https://www.youtube.com/channel/UCO6K_kkdP-lnSCiO3tPx7WA/live franceinfo.m3u8"
+            "https://www.youtube.com/channel/UCW2QcKZiU8aUGg4yxCIditg/live euronews.m3u8"
+            "https://www.youtube.com/channel/UCT67YOMntJxfRnO_9bXDpvw/live lemedia.m3u8"
+            "https://www.youtube.com/channel/UC25EuGAePOPvPrUA5cmu3dQ/live africanews.m3u8"
+            "https://www.youtube.com/channel/UCUaHJ0fTA-1theR8A8Polmw/live techandco.m3u8"
+            "https://www.youtube.com/channel/UCJduEGukjOXzTW4jfkQ-ihw/live relaxnature.m3u8"
+            "https://www.youtube.com/channel/UCcip9fzGawR1Or5G15UwFLA/live beetoonss.m3u8"
+          )
+          for stream in "${streams[@]}"; do
+            url=${stream% *}
+            file=${stream#* }
+            python3 tube.py "$url" > "$file"
+            sleep 15
+          done
 
-      # Informer Git que vous voulez inclure les mises à jour dans un fichier.
-      - name: git add
-        run: |
-          git add -A
-          ls -la
+      # Stage all changes for commit
+      - name: Stage Changes
+        run: git add -A
 
-      - name: commit & push
+      # Commit and push updates
+      - name: Commit and Push Updates
         run: |
-          git commit -m "Actualisation des flux"
+          git commit -m "Update streaming links"
           git push
